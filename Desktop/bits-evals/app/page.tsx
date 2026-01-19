@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { format, isSameDay, addDays, parseISO, isAfter } from 'date-fns';
-import { Plus, Trash2, Calendar, BookOpen, FlaskConical, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Clock, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion'; // Animation Library
 
 // --- CONFIGURATION ---
 const supabase = createClient(
@@ -14,7 +15,8 @@ const supabase = createClient(
 type EvalEvent = {
   id: string | number;
   title: string;
-  event_date: string; // YYYY-MM-DD
+  event_date: string;
+  time_range?: string; // New field
   type: 'Quiz' | 'Midsem' | 'Lab' | 'Deadline' | 'Compre' | 'Personal';
   isPersonal?: boolean;
 };
@@ -26,22 +28,20 @@ export default function Home() {
   
   // Form State
   const [newEventTitle, setNewEventTitle] = useState('');
+  const [newEventTime, setNewEventTime] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   // --- DATA FETCHING ---
   useEffect(() => {
     async function fetchData() {
-      // 1. Fetch Official Data (Only today & future)
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('evals')
         .select('*')
         .gte('event_date', format(new Date(), 'yyyy-MM-dd'))
         .order('event_date', { ascending: true });
 
       if (data) setMasterEvals(data as any);
-      if (error) console.error('Supabase Error:', error);
 
-      // 2. Fetch Personal Data (LocalStorage)
       const stored = localStorage.getItem('personalEvals');
       if (stored) setPersonalEvals(JSON.parse(stored));
       
@@ -57,7 +57,8 @@ export default function Home() {
     const newEval: EvalEvent = {
       id: Date.now(),
       title: newEventTitle,
-      event_date: format(new Date(), 'yyyy-MM-dd'), // Defaults to today for MVP
+      event_date: format(new Date(), 'yyyy-MM-dd'),
+      time_range: newEventTime || 'All Day',
       type: 'Personal',
       isPersonal: true,
     };
@@ -66,6 +67,7 @@ export default function Home() {
     setPersonalEvals(updated);
     localStorage.setItem('personalEvals', JSON.stringify(updated));
     setNewEventTitle('');
+    setNewEventTime('');
     setIsFormOpen(false);
   };
 
@@ -75,72 +77,93 @@ export default function Home() {
     localStorage.setItem('personalEvals', JSON.stringify(updated));
   };
 
-  // --- FILTERING LOGIC ---
+  // --- LOGIC ---
   const today = new Date();
   const tomorrow = addDays(today, 1);
-
-  // Merge official and personal
   const allEvals = [...masterEvals, ...personalEvals];
   
-  // Buckets
   const todayEvals = allEvals.filter((e) => isSameDay(parseISO(e.event_date), today));
   const tomorrowEvals = allEvals.filter((e) => isSameDay(parseISO(e.event_date), tomorrow));
-  
-  // "Upcoming" (Next 7 days excluding today/tomorrow)
   const upcomingEvals = allEvals.filter((e) => {
     const date = parseISO(e.event_date);
     return isAfter(date, tomorrow) && isAfter(addDays(today, 14), date);
   });
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-neutral-500 animate-pulse">Syncing...</div>;
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white tracking-widest uppercase text-xs">Loading Focus...</div>;
 
   return (
-    <main className="min-h-screen bg-black text-neutral-100 font-sans selection:bg-neutral-800">
+    <main className="min-h-screen bg-black text-white font-sans selection:bg-white selection:text-black">
       <div className="max-w-md mx-auto min-h-screen p-6 relative flex flex-col">
         
-        {/* HEADER */}
-        <header className="mt-8 mb-10">
-          <h1 className="text-4xl font-bold tracking-tighter text-white">Focus.</h1>
-          <p className="text-neutral-500 mt-2 text-sm font-medium uppercase tracking-widest">BITS Pilani • Goa Campus</p>
+        {/* BOLD HEADER with DATE */}
+        <header className="mt-12 mb-12">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <p className="text-neutral-500 font-bold tracking-widest text-xs uppercase mb-2">
+              {format(today, 'EEEE').toUpperCase()}
+            </p>
+            <h1 className="text-6xl font-black tracking-tighter leading-none text-white">
+              {format(today, 'd MMM').toUpperCase()}
+            </h1>
+            <div className="h-1 w-20 bg-white mt-6"></div>
+          </motion.div>
         </header>
 
-        {/* TODAY */}
-        <Section title="Today" evals={todayEvals} onDelete={deletePersonalEval} active />
+        {/* SECTIONS */}
+        <div className="space-y-12">
+          <Section label="TODAY" evals={todayEvals} onDelete={deletePersonalEval} delay={0.1} />
+          <Section label="TOMORROW" evals={tomorrowEvals} onDelete={deletePersonalEval} delay={0.2} />
+          <Section label="UPCOMING" evals={upcomingEvals} onDelete={deletePersonalEval} delay={0.3} />
+        </div>
 
-        {/* TOMORROW */}
-        <Section title="Tomorrow" evals={tomorrowEvals} onDelete={deletePersonalEval} />
-
-        {/* UPCOMING LOOKAHEAD */}
-        <Section title="Coming Up" evals={upcomingEvals} onDelete={deletePersonalEval} compact />
-
-        {/* FLOATING ACTION BUTTON */}
-        <button 
+        {/* FAB */}
+        <motion.button 
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={() => setIsFormOpen(true)}
-          className="fixed bottom-8 right-8 w-14 h-14 bg-white text-black rounded-full shadow-[0_0_20px_rgba(255,255,255,0.2)] flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-20"
+          className="fixed bottom-8 right-8 w-16 h-16 bg-white text-black rounded-full flex items-center justify-center z-20"
         >
-          <Plus size={24} strokeWidth={2.5} />
-        </button>
+          <Plus size={32} strokeWidth={3} />
+        </motion.button>
 
         {/* MODAL */}
-        {isFormOpen && (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-            <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 p-6 rounded-2xl shadow-2xl">
-              <h3 className="text-lg font-semibold mb-4 text-white">Add Personal Task</h3>
-              <input 
-                autoFocus
-                type="text" 
-                placeholder="e.g. Finish Lab Record"
-                className="w-full bg-black border border-neutral-700 p-4 rounded-xl mb-4 text-white focus:outline-none focus:border-neutral-500 placeholder:text-neutral-600"
-                value={newEventTitle}
-                onChange={(e) => setNewEventTitle(e.target.value)}
-              />
-              <div className="flex gap-3">
-                <button onClick={() => setIsFormOpen(false)} className="flex-1 py-3 rounded-xl text-neutral-400 hover:bg-neutral-800 transition-colors">Cancel</button>
-                <button onClick={addPersonalEval} className="flex-1 py-3 bg-white text-black font-semibold rounded-xl hover:bg-neutral-200 transition-colors">Add Task</button>
-              </div>
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {isFormOpen && (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-end sm:items-center justify-center p-4 z-50"
+            >
+              <motion.div 
+                initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }}
+                className="bg-neutral-900 border border-neutral-800 p-6 rounded-2xl w-full max-w-sm"
+              >
+                <h3 className="text-xl font-bold mb-6 text-white tracking-tight">NEW TASK</h3>
+                <input 
+                  autoFocus
+                  type="text" 
+                  placeholder="Task Name"
+                  className="w-full bg-black border-b-2 border-neutral-700 p-3 mb-4 text-white placeholder:text-neutral-600 focus:outline-none focus:border-white transition-colors text-lg font-medium"
+                  value={newEventTitle}
+                  onChange={(e) => setNewEventTitle(e.target.value)}
+                />
+                 <input 
+                  type="text" 
+                  placeholder="Time (e.g. 2 PM)"
+                  className="w-full bg-black border-b-2 border-neutral-700 p-3 mb-8 text-white placeholder:text-neutral-600 focus:outline-none focus:border-white transition-colors"
+                  value={newEventTime}
+                  onChange={(e) => setNewEventTime(e.target.value)}
+                />
+                <div className="flex gap-4">
+                  <button onClick={() => setIsFormOpen(false)} className="flex-1 py-4 rounded-lg text-neutral-500 font-bold hover:text-white transition-colors">CANCEL</button>
+                  <button onClick={addPersonalEval} className="flex-1 py-4 bg-white text-black rounded-lg font-bold hover:bg-neutral-200 transition-colors">ADD</button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </main>
   );
@@ -148,47 +171,63 @@ export default function Home() {
 
 // --- SUB-COMPONENTS ---
 
-function Section({ title, evals, onDelete, active = false, compact = false }: any) {
+function Section({ label, evals, onDelete, delay }: any) {
+  if (evals.length === 0 && label === 'TODAY') return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay }} className="mb-8">
+       <h2 className="text-xs font-bold text-neutral-600 tracking-widest mb-4 uppercase">{label}</h2>
+       <p className="text-neutral-700 italic border-l-2 border-neutral-800 pl-4 py-2">No tasks. Stay focused.</p>
+    </motion.div>
+  );
+  
   if (evals.length === 0) return null;
 
   return (
-    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-center gap-3 mb-4">
-        {active && <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse"></div>}
-        <h2 className={`font-semibold ${active ? 'text-white text-xl' : 'text-neutral-500 text-lg'}`}>{title}</h2>
-      </div>
+    <motion.section 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5 }}
+      className="mb-8"
+    >
+      <h2 className="text-xs font-bold text-neutral-500 tracking-widest mb-4 uppercase flex items-center gap-2">
+        {label}
+        <div className="h-[1px] flex-1 bg-neutral-800"></div>
+      </h2>
       
       <div className="space-y-3">
         {evals.map((e: EvalEvent) => (
-          <div key={e.id} className="group relative bg-neutral-900/50 border border-neutral-800/60 p-4 rounded-2xl flex items-start gap-4 hover:bg-neutral-900 transition-colors">
+          <div key={e.id} className="group relative bg-neutral-900 border border-neutral-800 hover:border-neutral-600 transition-colors p-5 rounded-lg">
             
-            {/* ICON BASED ON TYPE */}
-            <div className={`mt-1 p-2 rounded-lg ${
-              e.type === 'Quiz' ? 'bg-orange-500/10 text-orange-500' :
-              e.type === 'Midsem' || e.type === 'Compre' ? 'bg-red-500/10 text-red-500' :
-              e.type === 'Lab' ? 'bg-blue-500/10 text-blue-500' :
-              'bg-neutral-700/30 text-neutral-400'
-            }`}>
-              {e.type === 'Lab' ? <FlaskConical size={18} /> : 
-               e.type === 'Midsem' || e.type === 'Compre' ? <AlertCircle size={18} /> :
-               e.type === 'Quiz' ? <BookOpen size={18} /> :
-               <Calendar size={18} />}
+            <div className="flex justify-between items-start mb-2">
+              {/* TYPE BADGE (MONOCHROME) */}
+              <span className="text-[10px] font-bold uppercase tracking-wider border border-neutral-700 px-2 py-1 rounded text-neutral-400">
+                {e.type}
+              </span>
+              
+              {/* TIME DISPLAY */}
+              {e.time_range && (
+                <div className="flex items-center gap-1.5 text-neutral-400">
+                  <Clock size={12} />
+                  <span className="text-xs font-medium tracking-wide">{e.time_range}</span>
+                </div>
+              )}
             </div>
 
-            <div className="flex-1">
-              <h3 className="text-neutral-200 font-medium leading-tight">{e.title}</h3>
-              {!compact && <p className="text-neutral-500 text-xs mt-1.5 font-medium tracking-wide uppercase">{e.type} • {format(parseISO(e.event_date), 'MMM d')}</p>}
-              {compact && <p className="text-neutral-500 text-xs mt-1">{format(parseISO(e.event_date), 'EEE, MMM d')}</p>}
-            </div>
+            <div className="flex justify-between items-end">
+              <div>
+                <h3 className="text-xl font-bold text-white leading-tight">{e.title}</h3>
+                {label === 'UPCOMING' && <p className="text-neutral-500 text-xs mt-1 font-medium">{format(parseISO(e.event_date), 'MMMM d')}</p>}
+              </div>
 
-            {e.isPersonal && (
-              <button onClick={() => onDelete(e.id)} className="opacity-0 group-hover:opacity-100 text-neutral-600 hover:text-red-500 transition-all p-2">
-                <Trash2 size={16} />
-              </button>
-            )}
+              {e.isPersonal && (
+                <button onClick={() => onDelete(e.id)} className="text-neutral-600 hover:text-white transition-colors">
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
+            
           </div>
         ))}
       </div>
-    </section>
+    </motion.section>
   );
 }
