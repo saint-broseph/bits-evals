@@ -189,6 +189,26 @@ export default function Home() {
 
         </div>
 
+        {/* CREDIT FOOTER */}
+        <motion.footer 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="pt-20 pb-32 text-center"
+        >
+          <div className="flex flex-col items-center justify-center gap-2 opacity-30 hover:opacity-100 transition-opacity duration-300">
+            <div className="w-8 h-8 border border-white rounded-full flex items-center justify-center mb-2">
+               <span className="text-[10px] font-bold">TS</span>
+            </div>
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-white">
+              Architected by Tanishq Sahu
+            </p>
+            <p className="text-[9px] text-neutral-500 tracking-widest uppercase">
+              BITS Goa • Est. 2026
+            </p>
+          </div>
+        </motion.footer>
+
         {/* BOTTOM DOCK (NAVIGATION + FAB) */}
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 z-40">
             
