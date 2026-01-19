@@ -201,10 +201,10 @@ export default function Home() {
                <span className="text-[10px] font-bold">TS</span>
             </div>
             <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-white">
-              Architected by Tanishq Sahu
+              Tanishq Sahu
             </p>
             <p className="text-[9px] text-neutral-500 tracking-widest uppercase">
-              BITS Goa • Est. 2026
+              BITS Goa
             </p>
           </div>
         </motion.footer>
