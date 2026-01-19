@@ -217,8 +217,8 @@ export default function Home() {
             <div className="w-8 h-8 border border-white rounded-full flex items-center justify-center mb-2">
                <span className="text-[10px] font-bold">TS</span>
             </div>
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-white">Engineered by Tanishq Sahu</p>
-            <p className="text-[9px] text-neutral-500 tracking-widest uppercase">BITS Goa • Est. 2026</p>
+            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-white">Tanishq Sahu</p>
+            <p className="text-[9px] text-neutral-500 tracking-widest uppercase">BITS Goa</p>
           </div>
         </motion.footer>
 
