@@ -137,9 +137,12 @@ export default function Home() {
               <h1 className="text-3xl font-black tracking-tighter text-white">Focus.</h1>
               <p className="text-neutral-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-1">2-2 CS Eval Tracker</p>
             </div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
-              <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Live</span>
+            <div className="group flex items-center gap-2 mb-1 cursor-default">
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse group-hover:bg-emerald-500 transition-colors"></div>
+              <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider group-hover:text-white transition-colors">
+                <span className="group-hover:hidden">Live</span>
+                <span className="hidden group-hover:inline">Tanishq Sahu</span>
+              </span>
             </div>
           </div>
 
@@ -185,26 +188,6 @@ export default function Home() {
             )}
 
         </div>
-
-        {/* CREDIT FOOTER */}
-        <motion.footer 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="pt-20 pb-32 text-center"
-        >
-          <div className="flex flex-col items-center justify-center gap-2 opacity-30 hover:opacity-100 transition-opacity duration-300">
-            <div className="w-8 h-8 border border-white rounded-full flex items-center justify-center mb-2">
-               <span className="text-[10px] font-bold">TS</span>
-            </div>
-            <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-white">
-              Tanishq Sahu
-            </p>
-            <p className="text-[9px] text-neutral-500 tracking-widest uppercase">
-              BITS Goa
-            </p>
-          </div>
-        </motion.footer>
 
         {/* BOTTOM DOCK (NAVIGATION + FAB) */}
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 z-40">
