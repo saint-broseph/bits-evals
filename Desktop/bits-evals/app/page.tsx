@@ -95,17 +95,38 @@ export default function Home() {
     <main className="min-h-screen bg-black text-white font-sans selection:bg-white selection:text-black">
       <div className="max-w-md mx-auto min-h-screen p-6 relative flex flex-col">
         
-        {/* BOLD HEADER with DATE */}
-        <header className="mt-12 mb-12">
+        {/* HEADER SECTION */}
+        <header className="mt-8 mb-12">
+          
+          {/* 1. BRANDING (Restored) */}
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-10 flex justify-between items-end border-b border-neutral-800 pb-6"
+          >
+            <div>
+              <h1 className="text-3xl font-black tracking-tighter text-white">Focus.</h1>
+              <p className="text-neutral-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-1">
+                2-2 CS Eval Tracker
+              </p>
+            </div>
+            {/* Optional: Small 'Live' indicator */}
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
+              <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider">Live</span>
+            </div>
+          </motion.div>
+
+          {/* 2. THE BOLD DATE (Existing) */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
           >
             <p className="text-neutral-500 font-bold tracking-widest text-xs uppercase mb-2">
               {format(today, 'EEEE').toUpperCase()}
             </p>
-            <h1 className="text-6xl font-black tracking-tighter leading-none text-white">
+            <h1 className="text-7xl font-black tracking-tighter leading-none text-white">
               {format(today, 'd MMM').toUpperCase()}
             </h1>
             <div className="h-1 w-20 bg-white mt-6"></div>
