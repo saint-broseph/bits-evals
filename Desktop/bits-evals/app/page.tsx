@@ -121,7 +121,7 @@ export default function Home() {
           <div className="mb-8 flex justify-between items-end border-b border-neutral-800 pb-6">
             <div>
               <h1 className="text-3xl font-black tracking-tighter text-white">Focus.</h1>
-              <p className="text-neutral-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-1">2-2 CS Eval Tracker</p>
+              <p className="text-neutral-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-1">3-1 CS Eval Tracker</p>
             </div>
             <div className="group flex items-center gap-2 mb-1 cursor-default">
               <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse group-hover:bg-emerald-500 transition-colors"></div>
